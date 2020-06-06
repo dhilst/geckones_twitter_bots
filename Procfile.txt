@@ -1,1 +1,1 @@
-worker: python kiitensupport.py
+worker: python kittensupport.py
