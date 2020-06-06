@@ -92,12 +92,15 @@ def find_sad_tweets(api):
 def main() -> None:
     api = create_api()
     while True:
-        tweets = find_sad_tweets(api)
-        for t in tweets:
-            path = download_random_kitten_image()
-            url = tweet_random_kitten(api, path, t)
-            print(url)
-            os.remove(path)
+        try:
+            tweets = find_sad_tweets(api)
+            for t in tweets:
+                path = download_random_kitten_image()
+                url = tweet_random_kitten(api, path, t)
+                print(url)
+                os.remove(path)
+        except TweepError as e:
+            print(f"TweepError {e}")
         sleep(300)
 
 
