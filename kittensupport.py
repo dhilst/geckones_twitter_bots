@@ -4,6 +4,7 @@ import tempfile
 import os
 import requests
 from random import choice
+from time import sleep
 
 from tweepy import API, OAuthHandler, TweepError  # type: ignore
 
@@ -90,11 +91,13 @@ def find_sad_tweets(api):
 
 def main() -> None:
     api = create_api()
-    tweets = find_sad_tweets(api)
-    for t in tweets:
-        path = download_random_kitten_image()
-        url = tweet_random_kitten(api, path, t)
-        print(url)
+    while True:
+        tweets = find_sad_tweets(api)
+        for t in tweets:
+            path = download_random_kitten_image()
+            url = tweet_random_kitten(api, path, t)
+            print(url)
+        sleep(300)
 
 
 if __name__ == "__main__":
