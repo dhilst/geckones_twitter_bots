@@ -97,6 +97,7 @@ def main() -> None:
             path = download_random_kitten_image()
             url = tweet_random_kitten(api, path, t)
             print(url)
+            os.remove(path)
         sleep(300)
 
 
