@@ -11,7 +11,7 @@ from tweepy import API, OAuthHandler, TweepError  # type: ignore
 messages = [
     "Eu reparei que você ta mal, então preparei uma foto de gatinho pra vc! 🤗",
     "Espero que as coisas melhorem, enquanto isso, olha esse gatinho 🥰",
-    "Será que uma foto de gatinho ajuda? 😕",
+    "Eu vi que tá triste. Será que uma foto de gatinho ajuda? 😕",
 ]
 
 
