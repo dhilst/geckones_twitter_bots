@@ -101,6 +101,8 @@ def main() -> None:
                 os.remove(path)
         except TweepError as e:
             print(f"TweepError {e}")
+        except RuntimeError:
+            printf("Cat as a service unavailable")
         sleep(300)
 
 
