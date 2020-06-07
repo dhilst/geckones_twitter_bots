@@ -42,6 +42,7 @@ def format_phrase(p):
             s.write("\n")
             s2.write(s.getvalue())
             s = StringIO()
+    s2.write(s.getvalue())
     if s2.getvalue().endswith("\n"):
         s2 = StringIO(s2.getvalue()[0:-1])
     return s2.getvalue()
