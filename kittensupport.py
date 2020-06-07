@@ -3,16 +3,24 @@ import shutil
 import tempfile
 import os
 import requests
-from random import choice
+from random import randint, choice
 from time import sleep
+from bs4 import BeautifulSoup
 
 from tweepy import API, OAuthHandler, TweepError  # type: ignore
 
-messages = [
-    "Eu reparei que você ta mal, então preparei uma foto de gatinho pra vc! 🤗",
-    "Espero que as coisas melhorem, enquanto isso, olha esse gatinho 🥰",
-    "Eu vi que tá triste. Será que uma foto de gatinho ajuda? 😕",
-]
+
+def get_random_message():
+    p = randint(1,20)
+    page = requests.get(f"https://www.pensador.com/frases/{p}/")
+    if page.status_code != 200:
+        return
+    soup = BeautifulSoup(page.content, 'html.parser')
+    phrase = choice(soup.find_all('p', class_='frase'))
+    author = phrase.parent.find('span', class_='autor').find('a')
+    phrase = f'{phrase.get_text()} - {author.get_text()}'
+    return phrase
+
 
 
 def create_api() -> API:
@@ -38,7 +46,7 @@ def create_api() -> API:
 
 def download_random_kitten_image():
     "Returns the file name, user should delete it after using"
-    res = requests.get("https://cataas.com/cat?width=200", stream=True)
+    res = requests.get(f"https://cataas.com/cat?width=600", stream=True)
     if res.status_code != 200:
         raise RuntimeError("placekitten request failed")
 
@@ -48,62 +56,29 @@ def download_random_kitten_image():
     return f.name
 
 
-def tweet_random_kitten(api, img_path, reply):
-    status = choice(messages)
-    message = f"@{reply.user.screen_name} {status}"
+def tweet_random_kitten(api, img_path, status=None, reply=None):
     status = api.update_with_media(
-        img_path, status=message, in_reply_to_status_id=reply.id,
+        img_path, status=status, in_reply_to_status_id=getattr(reply, 'id', None),
     )
     return f"https://twitter.com/kiitenstatus/status/{status.id}"
-
-
-def get_last_id():
-    try:
-        return open(".lastid", "r").read()
-    except IOError:
-        return "0"
-
-
-def save_last_id(last_id):
-    open(".lastid", "w").write(str(last_id))
-
-
-def find_sad_tweets(api):
-    tweets = api.search(
-        q="to tão triste",
-        lang="pt",
-        result_type="recent",
-        count=3,
-        since_id=get_last_id(),
-    )
-    tweets = [
-        t
-        for t in tweets
-        if not hasattr(t, "retweet_status")
-        and not t.text.startswith("RT @")
-        and not hasattr(t, "in_reply_status_id")
-    ]
-
-    if tweets:
-        save_last_id(max(int(t.id) for t in tweets))
-    return tweets
-
 
 def main() -> None:
     api = create_api()
     while True:
+        path = None
         try:
-            tweets = find_sad_tweets(api)
-            for t in tweets:
-                path = download_random_kitten_image()
-                url = tweet_random_kitten(api, path, t)
-                print(url)
-                os.remove(path)
+            text = get_random_message()
+            path = download_random_kitten_image()
+            url = tweet_random_kitten(api, path, status=text)
+            print(url)
         except TweepError as e:
             print(f"TweepError {e}")
         except RuntimeError:
             printf("Cat as a service unavailable")
-        sleep(300)
+        finally:
+            if path:
+                os.remove(path)
+        sleep(3600)
 
 
 if __name__ == "__main__":
