@@ -1,3 +1,4 @@
+import asyncio
 import sys
 import shutil
 import tempfile
@@ -76,7 +77,7 @@ def tweet_random_kitten(api, img_path, status=None, reply=None):
     )
     return status
 
-def main() -> None:
+async def main() -> None:
     api = create_api()
     me = api.me().screen_name
     url = "https://twitter.com/{}/status/{{}}".format(me)
@@ -93,8 +94,8 @@ def main() -> None:
         finally:
             if path:
                 os.remove(path)
-        sleep(3600)
+        await asyncio.sleep(3600)
 
 
 if __name__ == "__main__":
-    main()
+    asycio.run(main())
