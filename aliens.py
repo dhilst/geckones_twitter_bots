@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 import utils
 import imgflip
 
+class ContinueOuter(Exception): pass
+
 async def main():
     print("aliens bot started")
     twitter = await utils.create_twitter(
@@ -22,9 +24,12 @@ async def main():
             # Skip if already replied
             # should normally not happen because of Redis state
             # but Redis state is not invicible
-            for reply in twitter.search(q=f"to:{me.screen_name}", since_id=t.id, tweet_mode='extended'):
-                if reply.in_reply_to_status_id == t.id:
-                    continue
+            try:
+                for reply in twitter.search(q=f"to:{me.screen_name}", since_id=t.id, tweet_mode='extended'):
+                    if reply.in_reply_to_status_id == t.id:
+                        raise ContinueOuter
+            except ContinueOuter:
+                continue
 
             text = t.text.replace(f'@{me.screen_name}', '').strip()
             url = await imgflip.post_meme('Ancient Aliens', text1=text)
