@@ -1,3 +1,4 @@
-Um bot pra mandar msg de apoio pra galera que ta mal, com fotos de gatinhos 😻
+My twitter bots ♥️
 
-https://twitter.com/kiitensupport
+* https://twitter.com/kiitensupport
+* https://twitter.com/MemesBrasilPai
