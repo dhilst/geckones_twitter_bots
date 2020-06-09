@@ -66,8 +66,8 @@ async def download_image(url):
 
 
 @run_async
-def tweet_image(twitter, path):
-    return twitter.update_with_media(path)
+def tweet_image(twitter, path, status=None, reply_id=None):
+    return twitter.update_with_media(path, status, in_reply_to_status_id=reply_id)
 
 def redis():
     return StrictRedis.from_url(os.environ['REDIS_URL'], decode_responses=True)
