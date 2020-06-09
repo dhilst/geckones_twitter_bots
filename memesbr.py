@@ -1,6 +1,6 @@
 import os
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import aiohttp
 import praw
@@ -29,7 +29,9 @@ async def getmemeurl(reddit):
             key = f'memesbrasil_{post.id}'
             if await redis.exists(key):
                 continue
-            await redis.set(key, datetime.now())
+            now = datetime.now()
+            await redis.set(key, now)
+            await redis.expireat(key, now + timedelta(days=90))
             return post.url
 
 
