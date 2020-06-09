@@ -1,5 +1,6 @@
 import os
 import asyncio
+import aiofiles.os as aos
 from datetime import datetime, timedelta
 
 import aiohttp
@@ -53,6 +54,7 @@ async def main():
 
         status = await utils.tweet_image(twitter, memepath)
         print(status.text)
+        await aos.remove(memepath)
         await asyncio.sleep(3600)
 
 
