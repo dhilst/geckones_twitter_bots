@@ -5,7 +5,9 @@ import tempfile
 
 import aiohttp
 import aiofiles
+import aiofiles.os
 import tweepy
+import contextlib
 from aredis import StrictRedis
 
 
@@ -46,7 +48,7 @@ def get_extension(string):
 def is_image(url):
     return get_extension(url) in ("jpeg", "jpg", "png", "gif")
 
-
+@contextlib.asynccontextmanager
 async def download_image(url):
     async with aiohttp.ClientSession() as session:
         extension = get_extension(url)
@@ -59,7 +61,8 @@ async def download_image(url):
                 async with aiofiles.open(fname, 'wb') as f:
                     content = await resp.read()
                     await f.write(content)
-                return fname
+                yield fname
+                await aiofiles.os.remove(fname)
 
 
 @run_async

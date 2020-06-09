@@ -1,6 +1,5 @@
 import os
 import asyncio
-import aiofiles.os as aos
 from datetime import datetime, timedelta
 
 import aiohttp
@@ -48,13 +47,10 @@ async def main():
         memeurl = await getmemeurl(reddit)
         if memeurl is None:
             return
-        memepath = await utils.download_image(memeurl)
-        if memepath is None:
-            return
 
-        status = await utils.tweet_image(twitter, memepath)
-        print(status.text)
-        await aos.remove(memepath)
+        async with utils.download_image(memeurl) as memepath:
+            status = await utils.tweet_image(twitter, memepath)
+            print(status.text)
         await asyncio.sleep(3600)
 
 
