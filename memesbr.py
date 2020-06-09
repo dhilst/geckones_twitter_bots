@@ -36,6 +36,7 @@ async def getmemeurl(reddit):
 
 
 async def main():
+    print("memesbr bot started")
     reddit = await create_reddit()
     twitter = await utils.create_twitter(
         key=os.environ["MEMESBR_TWITTER_ACCESS_KEY"],

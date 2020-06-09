@@ -78,6 +78,7 @@ def tweet_random_kitten(api, img_path, status=None, reply=None):
     return status
 
 async def main() -> None:
+    print("kiitensupport bot started")
     api = create_api()
     me = api.me().screen_name
     url = "https://twitter.com/{}/status/{{}}".format(me)

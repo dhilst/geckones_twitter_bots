@@ -6,6 +6,7 @@ import utils
 import imgflip
 
 async def main():
+    print("aliens bot started")
     twitter = await utils.create_twitter(
         key=os.environ["ALIENSGUY_TWITTER_ACCESS_KEY"],
         secret=os.environ["ALIENSGUY_TWITTER_ACCESS_SECRET"],
