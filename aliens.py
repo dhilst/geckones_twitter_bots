@@ -32,7 +32,7 @@ async def main():
             except ContinueOuter:
                 continue
 
-            text = re.replace(text, r'@[^ ]+', '').strip()
+            text = re.sub(text, r'@[^ ]+', '').strip()
             url = await imgflip.post_meme('Ancient Aliens', text1=text)
 
             if not url:
