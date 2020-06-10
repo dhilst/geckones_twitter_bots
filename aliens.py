@@ -6,7 +6,10 @@ from datetime import datetime, timedelta
 import utils
 import imgflip
 
-class ContinueOuter(Exception): pass
+
+class ContinueOuter(Exception):
+    pass
+
 
 async def main():
     print("aliens bot started")
@@ -18,7 +21,7 @@ async def main():
     )
     redis = utils.redis()
     me = twitter.me()
-    key = f'twitter_{me.id}_last'
+    key = f"twitter_{me.id}_last"
     while True:
         last = await redis.get(key)
         for t in twitter.mentions_timeline(last):
@@ -26,25 +29,31 @@ async def main():
             # should normally not happen because of Redis state
             # but Redis state is not invicible
             try:
-                for reply in twitter.search(q=f"to:{me.screen_name}", since_id=t.id, tweet_mode='extended'):
+                for reply in twitter.search(
+                    q=f"to:{me.screen_name}", since_id=t.id, tweet_mode="extended"
+                ):
                     if reply.in_reply_to_status_id == t.id:
                         raise ContinueOuter
             except ContinueOuter:
                 continue
 
-            text = re.sub(text, r'@[^ ]+', '').strip()
-            url = await imgflip.post_meme('Ancient Aliens', text1=text)
+            text = re.sub(r"@[^ ]+", "", t.text).strip()
+            ats = re.findall(r"(@[^ ]+)", t.text)
+            ats = {at for at in ats if at != f"@{me.screen_name}"}
+            ats = ats.union({f"@{t.user.screen_name}"})
+            ats = ' '.join(ats)
+            url = await imgflip.post_meme("Ancient Aliens", text1=text)
 
             if not url:
                 continue
 
-            status = f'@{t.user.screen_name}'
             async with utils.download_image(url) as path:
-                tweet = await utils.tweet_image(twitter, path, status=status, reply_id=t.id)
+                tweet = await utils.tweet_image(twitter, path, status=ats, reply_id=t.id)
             print(tweet.text)
             await redis.set(key, t.id)
             await redis.expireat(key, datetime.now() + timedelta(days=30))
         await asyncio.sleep(60)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     asyncio.run(main())
