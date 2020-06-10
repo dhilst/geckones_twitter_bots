@@ -1,3 +1,4 @@
+import re
 import os
 import asyncio
 from datetime import datetime, timedelta
@@ -31,7 +32,7 @@ async def main():
             except ContinueOuter:
                 continue
 
-            text = t.text.replace(f'@{me.screen_name}', '').strip()
+            text = re.replace(text, r'@[^ ]+', '').strip()
             url = await imgflip.post_meme('Ancient Aliens', text1=text)
 
             if not url:
