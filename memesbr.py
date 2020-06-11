@@ -50,8 +50,9 @@ async def main():
             return
 
         async with utils.download_image(memeurl) as memepath:
-            status = await utils.tweet_image(twitter, memepath)
-            print(status.text)
+            if 'DRYRUN' not in os.environ:
+                status = await twitter.update_with_media(memepath)
+                print(status.text)
         await asyncio.sleep(3600)
 
 

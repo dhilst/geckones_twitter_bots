@@ -8,6 +8,7 @@ import aiofiles
 import aiofiles.os
 import tweepy
 import contextlib
+import atweepy
 from aredis import StrictRedis
 
 
@@ -20,14 +21,14 @@ def run_async(f):
     return inner
 
 
-@run_async
-def create_twitter(key, secret, access_token, access_token_secret):
+
+async def create_twitter(key, secret, access_token, access_token_secret):
     try:
-        auth = tweepy.OAuthHandler(key, secret)
+        auth = atweepy.OAuthHandler(key, secret)
     except tweepy.TweepError:
         return
     auth.set_access_token(access_token, access_token_secret)
-    api = tweepy.API(
+    api = atweepy.API(
         auth,
         retry_count=3,
         retry_delay=10,
@@ -48,6 +49,7 @@ def get_extension(string):
 def is_image(url):
     return get_extension(url) in ("jpeg", "jpg", "png", "gif")
 
+
 @contextlib.asynccontextmanager
 async def download_image(url):
     async with aiohttp.ClientSession() as session:
@@ -56,9 +58,11 @@ async def download_image(url):
             return
         async with session.get(url) as resp:
             if resp.status == 200:
-                with tempfile.NamedTemporaryFile(suffix=f".{extension}", delete=False) as f:
+                with tempfile.NamedTemporaryFile(
+                    suffix=f".{extension}", delete=False
+                ) as f:
                     fname = f.name
-                async with aiofiles.open(fname, 'wb') as f:
+                async with aiofiles.open(fname, "wb") as f:
                     content = await resp.read()
                     await f.write(content)
                 yield fname
@@ -69,5 +73,6 @@ async def download_image(url):
 def tweet_image(twitter, path, status=None, reply_id=None):
     return twitter.update_with_media(path, status, in_reply_to_status_id=reply_id)
 
+
 def redis():
-    return StrictRedis.from_url(os.environ['REDIS_URL'], decode_responses=True)
+    return StrictRedis.from_url(os.environ["REDIS_URL"], decode_responses=True)
