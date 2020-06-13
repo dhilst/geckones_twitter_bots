@@ -99,4 +99,4 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    asycio.run(main())
+    asyncio.run(main())
