@@ -22,6 +22,13 @@ def to_date(dstr):
     return datetime.strptime(dstr, r"%Y-%m-%d %H:%M:%S.%f")
 
 async def get_memesbrasil_subreddits(redis, reddit=None):
+    return reddit.subreddit("MemesBrasil").new(limit=1000)
+
+    # The above code is okay but it doesn't work beacuse
+    # reddit removed the timestamp search from their API
+    # we have to use http://redditsearch.io/ which I'm
+    # not whilling to implement at statuday
+
     if reddit is None:
         reddit = await create_reddit()
 
