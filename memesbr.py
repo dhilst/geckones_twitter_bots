@@ -50,7 +50,7 @@ async def migrate_keys(redis, reddit):
         id_ = k.replace("memesbrasil_", "")
         post = reddit.submission(id_)
         await redis.zadd("memesbrasil", post.created, id_)
-        print(id_, 'migrated wiht score', post.created)
+        print(id_, 'migrated with score', post.created)
 
 async def getmemeurl(redis, reddit):
     posts = await get_memesbrasil_subreddits(redis, reddit)
