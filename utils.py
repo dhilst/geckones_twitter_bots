@@ -1,25 +1,68 @@
-import os
-import functools
 import asyncio
+import contextlib
+import functools
+import inspect
+import logging
+import os
 import tempfile
+from datetime import datetime, timedelta
 
 import aiohttp
 import aiofiles
 import aiofiles.os
 import tweepy
-import contextlib
+from pytz import timezone
+
 import atweepy
 from aredis import StrictRedis
 
 
-def run_async(f):
-    @functools.wraps(f)
-    def inner(*args, **kwargs):
-        loop = asyncio.get_running_loop()
-        return loop.run_in_executor(None, lambda: f(*args, **kwargs))
+tz_America_Sao_Paulo = timezone("America/Sao_Paulo")
+run_async = atweepy.awrap  # don't break older code
 
-    return inner
 
+def next_hour(hour):
+    now = datetime.now(tz=tz_America_Sao_Paulo)
+    d = now.replace(hour=hour)
+    if d < now:
+        d += timedelta(hours=24)
+
+    return d - now
+
+
+class _Logger:
+    """
+    Logger proxy
+
+    Usage:
+    from utils import log
+
+    log.info("foo")
+    """
+
+    _loggers = {}
+
+    @classmethod
+    def create_logger(cls, name):
+        l = logging.getLogger(name)
+        handler = logging.StreamHandler()
+        handler.setFormatter(
+            logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        )
+        l.addHandler(handler)
+        l.setLevel(logging.DEBUG)
+        return l
+
+    def __getattr__(self, attr):
+        name = os.path.splitext(os.path.basename(inspect.stack()[1].filename))[
+            0
+        ].upper()
+        if name not in self.__class__._loggers:
+            self.__class__._loggers[name] = self.__class__.create_logger(name)
+        return getattr(self.__class__._loggers[name], attr)
+
+
+log = _Logger()
 
 
 async def create_twitter(key, secret, access_token, access_token_secret):
