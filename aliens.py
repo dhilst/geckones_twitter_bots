@@ -35,7 +35,7 @@ async def reply_to_us(twitter, tweet, me):
 
 
 async def main():
-    print("aliens bot started")
+    utils.log.info("started")
     twitter = await create_twitter()
     redis = utils.redis()
     me = await twitter.me()
@@ -69,7 +69,7 @@ async def main():
             ats = ats.union({f"@{t.user.screen_name}"})
             ats = " ".join(ats)
 
-            print(f"[aliens] found {t.id} {ats} {text}")
+            utils.log.debug(f"found %s %s %s", t.id, ats, text)
 
             if "DRYRUN" in os.environ:
                 continue
