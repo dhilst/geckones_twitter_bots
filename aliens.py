@@ -1,6 +1,7 @@
 import re
 import os
 import asyncio
+import tweepy
 from datetime import datetime, timedelta
 
 import utils
@@ -11,20 +12,38 @@ class ContinueOuter(Exception):
     pass
 
 
-async def main():
-    print("aliens bot started")
-    twitter = await utils.create_twitter(
+
+async def create_twitter():
+    return await utils.create_twitter(
         key=os.environ["ALIENSGUY_TWITTER_ACCESS_KEY"],
         secret=os.environ["ALIENSGUY_TWITTER_ACCESS_SECRET"],
         access_token=os.environ["ALIENSGUY_TWITTER_ACCESS_TOKEN"],
         access_token_secret=os.environ["ALIENSGUY_TWITTER_ACCESS_TOKEN_SECRET"],
     )
+
+
+async def reply_to_us(twitter, tweet, me):
+    while True:
+        if tweet.in_reply_to_status_id is None:
+            return False
+
+        parent = await twitter.get_status(tweet.in_reply_to_status_id)
+        if parent.user.id == me.id:
+            return True
+
+        tweet = parent
+
+
+async def main():
+    print("aliens bot started")
+    twitter = await create_twitter()
     redis = utils.redis()
     me = await twitter.me()
     key = f"twitter_{me.id}_last"
     while True:
         last = await redis.get(key)
         for t in await twitter.mentions_timeline(last):
+
             # Skip if already replied
             # should normally not happen because of Redis state
             # but Redis state is not invicible
@@ -35,6 +54,13 @@ async def main():
                     if reply.in_reply_to_status_id == t.id:
                         raise ContinueOuter
             except ContinueOuter:
+                continue
+
+            # If this is a reply to us, then it reply
+            # and the tweet replied has an image, we just ignore
+            # This is to avoid user comment on results trigger another
+            # meme. When an user reply on eof our messages we're
+            if await reply_to_us(twitter, t, me):
                 continue
 
             text = re.sub(r"@[^ ]+", "", t.text).strip()
@@ -57,7 +83,6 @@ async def main():
                 tweet = await twitter.update_with_media(
                     path, status=ats, in_reply_to_status_id=t.id
                 )
-            print(tweet.text)
             await redis.set(key, t.id)
             await redis.expireat(key, datetime.now() + timedelta(days=30))
         await asyncio.sleep(60)
