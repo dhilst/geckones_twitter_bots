@@ -52,11 +52,10 @@ def draw_text(img, draw, text, font):
     w = img_center_width(img, draw, text, font)
     draw_text_border(draw, text, w, h, font)
 
-async def create_meme(imgpath, *text):
+async def create_meme(imgpath, outpath, text):
     img = Image.open(imgpath)
     font = ImageFont.truetype('unicode.impact.ttf', 32)
     draw = ImageDraw.Draw(img)
-    text = " ".join(text)
     text = textwrap.wrap(text, 32)
     text = (line.center(32) for line in text)
     text = "\n".join(text)
@@ -65,8 +64,7 @@ async def create_meme(imgpath, *text):
     create_font(img, draw, text, 'unicode.impact.ttf')
     draw_text(img, draw, text, font)
 
-    img.save('sample-out.png')
-
+    img.save(outpath)
 
 if __name__ == '__main__':
-    asyncio.run(create_meme(sys.argv[1], *sys.argv[2:]))
+    asyncio.run(create_meme(sys.argv[1], sys.argv[2], " ".join(sys.argv[3:])))
