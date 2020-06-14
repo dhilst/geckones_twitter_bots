@@ -8,6 +8,7 @@ import praw
 import utils
 from atweepy import acall, awrap
 
+
 @awrap
 def create_reddit():
     reddit = praw.Reddit(
@@ -18,8 +19,10 @@ def create_reddit():
 
     return reddit
 
+
 def to_date(dstr):
     return datetime.strptime(dstr, r"%Y-%m-%d %H:%M:%S.%f")
+
 
 async def get_memesbrasil_subreddits(redis, reddit=None):
     return reddit.subreddit("MemesBrasil").new(limit=1000)
@@ -33,7 +36,7 @@ async def get_memesbrasil_subreddits(redis, reddit=None):
         reddit = await create_reddit()
 
     try:
-         # get older post date
+        # get older post date
         val = await redis.zrange("memesbrasil", 0, 0, withscores=True)
         tstamp = val[0][1]
         last_timestamp = datetime.fromtimestamp(tstamp)
@@ -41,7 +44,7 @@ async def get_memesbrasil_subreddits(redis, reddit=None):
         pass
 
     if last_timestamp is not None:
-        back_up_to = {'days': 30}
+        back_up_to = {"days": 30}
         prev = last_timestamp - timedelta(**back_up_to)
         d1, d2 = int(prev.timestamp()), int(last_timestamp.timestamp())
         return reddit.subreddit("MemesBrasil").new(params={"timestamp": f"{d1}..{d2}"})
@@ -49,23 +52,19 @@ async def get_memesbrasil_subreddits(redis, reddit=None):
     return reddit.subreddit("MemesBrasil").new()
 
 
-async def migrate_keys(redis, reddit):
-    await redis.delete('memesbrasil')
-    for k in await redis.keys("memesbrasil_*"):
-        val = await redis.get(k)
-        val = to_date(val)
-        id_ = k.replace("memesbrasil_", "")
-        post = reddit.submission(id_)
-        await redis.zadd("memesbrasil", post.created, id_)
-        print(id_, 'migrated with score', post.created)
-
 async def getmemeurl(redis, reddit):
     posts = await get_memesbrasil_subreddits(redis, reddit)
     for post in posts:
         if post.url and utils.is_image(post.url):
             if await redis.zscore("memesbrasil", post.id):
                 continue
-            print('[memesbr] found', datetime.fromtimestamp(post.created), post.id, post.title, post.url)
+            utils.log.debug(
+                "found %s %s %s %s",
+                datetime.fromtimestamp(post.created),
+                post.id,
+                post.title,
+                post.url,
+            )
             now = datetime.now()
             await redis.zadd("memesbrasil", post.created, post.id)
             return post.url
@@ -82,23 +81,21 @@ async def main():
         access_token_secret=os.environ["MEMESBR_TWITTER_ACCESS_TOKEN_SECRET"],
     )
 
-    print("memesbr bot started")
-    if 'MEMESBR_MIGRATE_KEYS' in os.environ:
-        await migrate_keys(redis, reddit)
-        return
+    utils.log.info("memesbr bot started")
 
     while True:
+        utils.log.info("sleeping")
+        await asyncio.sleep(utils.next_hour(19).total_seconds())
         memeurl = await getmemeurl(redis, reddit)
         if memeurl is None:
             return
 
         async with utils.download_image(memeurl) as memepath:
-            print(memepath);
-            if 'DRYRUN' not in os.environ:
+            utils.log.debug("memepath %s", memepath)
+            if "DRYRUN" not in os.environ:
                 status = await twitter.update_with_media(memepath)
             else:
-                print('[memesbr] dryrun, skipping')
-        await asyncio.sleep(3600)
+                utils.log.info("dryrun, skipping")
 
 
 if __name__ == "__main__":
