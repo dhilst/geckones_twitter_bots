@@ -23,7 +23,7 @@ run_async = atweepy.awrap  # don't break older code
 
 def next_hour(hour):
     now = datetime.now(tz=tz_America_Sao_Paulo)
-    d = now.replace(hour=hour)
+    d = now.replace(hour=hour, minute=0, seconds=0, microsecond=0)
     if d < now:
         d += timedelta(hours=24)
 
