@@ -82,6 +82,10 @@ async def create_twitter(key, secret, access_token, access_token_secret):
     return api
 
 
+async def get_tweet_url(twitter, tweet):
+    me = await twitter.me()
+    return f"https://twitter.com/{me.screen_name}/status/{tweet.id}"
+
 def get_extension(string):
     try:
         return string.rsplit(".", 1)[1]
