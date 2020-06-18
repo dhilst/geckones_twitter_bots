@@ -14,6 +14,7 @@ class ContinueOuter(Exception):
 
 
 async def main():
+    return
     utils.log.info("bot started")
     twitter = await utils.create_twitter(
         key=os.environ["MEMEMIZE_TWITTER_ACCESS_KEY"],
