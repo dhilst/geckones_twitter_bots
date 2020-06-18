@@ -83,14 +83,24 @@ async def create_twitter(key, secret, access_token, access_token_secret):
 
 
 async def get_tweet_url(twitter, tweet):
-    me = await twitter.me()
-    return f"https://twitter.com/{me.screen_name}/status/{tweet.id}"
+    return f"https://twitter.com/{tweet.user.screen_name}/status/{tweet.id}"
 
 def get_extension(string):
     try:
         return string.rsplit(".", 1)[1]
     except IndexError:
         pass
+
+async def reply_to_us(twitter, tweet, me):
+    while True:
+        if tweet.in_reply_to_status_id is None:
+            return False
+
+        parent = await twitter.get_status(tweet.in_reply_to_status_id)
+        if parent.user.id == me.id:
+            return True
+
+        tweet = parent
 
 
 def is_image(url):

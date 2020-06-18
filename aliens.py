@@ -22,18 +22,6 @@ async def create_twitter():
     )
 
 
-async def reply_to_us(twitter, tweet, me):
-    while True:
-        if tweet.in_reply_to_status_id is None:
-            return False
-
-        parent = await twitter.get_status(tweet.in_reply_to_status_id)
-        if parent.user.id == me.id:
-            return True
-
-        tweet = parent
-
-
 async def main():
     utils.log.info("started")
     twitter = await create_twitter()
@@ -43,6 +31,11 @@ async def main():
     while True:
         last = await redis.get(key)
         for t in await twitter.mentions_timeline(last):
+            if last is None or t.id > int(last):
+                utils.log.debug("Saving last=%s t.id=%s", last, t.id)
+                await redis.set(key, t.id)
+                await redis.expireat(key, datetime.now() + timedelta(days=30))
+                last = t.id
 
             # Skip if already replied
             # should normally not happen because of Redis state
@@ -60,7 +53,7 @@ async def main():
             # and the tweet replied has an image, we just ignore
             # This is to avoid user comment on results trigger another
             # meme. When an user reply on eof our messages we're
-            if await reply_to_us(twitter, t, me):
+            if await utils.reply_to_us(twitter, t, me):
                 continue
 
             text = re.sub(r"@[^ ]+", "", t.text).strip()
@@ -83,8 +76,6 @@ async def main():
                 tweet = await twitter.update_with_media(
                     path, status=ats, in_reply_to_status_id=t.id
                 )
-            await redis.set(key, t.id)
-            await redis.expireat(key, datetime.now() + timedelta(days=30))
         await asyncio.sleep(60)
 
 
