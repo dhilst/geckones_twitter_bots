@@ -66,19 +66,20 @@ async def main():
                     t.in_reply_to_status_id, include_entities=True
                 )
                 if "media" in replied.entities and len(replied.entities["media"]):
-                    url = replied.entities["media"][0]["media_url"]
-                    async with utils.download_image(url) as path:
-                        output_path = await mememaker.create_meme_tempfile(path, text)
-                        if 'DRYRUN' not in os.environ:
-                            status = await twitter.update_with_media(
-                                output_path, status=ats, in_reply_to_status_id=t.id
-                            )
-                            utils.log.info(
-                                "%s posted", await utils.get_tweet_url(twitter, status)
-                            )
-                        else:
-                            utils.log.debug('DRYRUN, skipping %s', await utils.get_tweet_url(twitter, t))
-                        await aiofiles.os.remove(output_path)
+                    url = replied.entities["media"][0].get("media_url")
+                    if url:
+                        async with utils.download_image(url) as path:
+                            output_path = await mememaker.create_meme_tempfile(path, text)
+                            if 'DRYRUN' not in os.environ:
+                                status = await twitter.update_with_media(
+                                    output_path, status=ats, in_reply_to_status_id=t.id
+                                )
+                                utils.log.info(
+                                    "%s posted", await utils.get_tweet_url(twitter, status)
+                                )
+                            else:
+                                utils.log.debug('DRYRUN, skipping %s', await utils.get_tweet_url(twitter, t))
+                            await aiofiles.os.remove(output_path)
         await asyncio.sleep(10)
 
 
