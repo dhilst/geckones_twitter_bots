@@ -4,6 +4,7 @@ import asyncio
 import kittensupport
 import memesbr
 import aliens
+import mememize
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
@@ -11,4 +12,5 @@ if __name__ == '__main__':
     loop.create_task(kittensupport.main())
     loop.create_task(memesbr.main())
     loop.create_task(aliens.main())
+    loop.create_task(mememize.main())
     loop.run_forever()
