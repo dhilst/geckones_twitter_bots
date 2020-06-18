@@ -65,7 +65,7 @@ async def main():
                 replied = await twitter.get_status(
                     t.in_reply_to_status_id, include_entities=True
                 )
-                if len(replied.entities["media"]):
+                if "media" in replied.entities and len(replied.entities["media"]):
                     url = replied.entities["media"][0]["media_url"]
                     async with utils.download_image(url) as path:
                         output_path = await mememaker.create_meme_tempfile(path, text)
