@@ -65,7 +65,7 @@ async def main():
                         await aiofiles.os.remove(output_path)
             await redis.set(key, t.id)
             await redis.expireat(key, datetime.now() + timedelta(days=30))
-        await asyncio.sleep(60)
+        await asyncio.sleep(10)
 
 
 if __name__ == "__main__":
