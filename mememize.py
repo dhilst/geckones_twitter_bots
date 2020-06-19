@@ -80,7 +80,7 @@ async def main():
                             else:
                                 utils.log.debug('DRYRUN, skipping %s', await utils.get_tweet_url(twitter, t))
                             await aiofiles.os.remove(output_path)
-        await asyncio.sleep(10)
+        await asyncio.sleep(20)
 
 
 if __name__ == "__main__":
