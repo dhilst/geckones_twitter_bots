@@ -65,7 +65,7 @@ async def main():
                 replied = await twitter.get_status(
                     t.in_reply_to_status_id, include_entities=True
                 )
-                if "media" in replied.entities and len(replied.entities["media"]):
+                if "media" in replied.entities and len(replied.entities["media"]) and text:
                     url = replied.entities["media"][0].get("media_url")
                     if url:
                         async with utils.download_image(url) as path:
