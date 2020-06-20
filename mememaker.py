@@ -65,19 +65,20 @@ def create_font(img, draw, text, fontpath):
 
 
 def draw_text(img, draw, text: List[str], font, text_top: List[str] = None):
-    offset = 0
-    offset_top = 0
-    larger_text = max(text, key=len)
-    font = create_font(img, draw, larger_text, "unicode.impact.ttf")
-    _, fheight = draw.textsize(text[0], font)
-    for line in reversed(text):
-        h = img_margin_bottom(img, draw, line, font, offset)
-        w = img_center_width(img, draw, line, font)
-        draw_text_border(draw, line, w, h, font)
-        offset += fheight + 10
+    if text:
+        offset = 0
+        larger_text = max(text, key=len)
+        font = create_font(img, draw, larger_text, "unicode.impact.ttf")
+        _, fheight = draw.textsize(text[0], font)
+        for line in reversed(text):
+            h = img_margin_bottom(img, draw, line, font, offset)
+            w = img_center_width(img, draw, line, font)
+            draw_text_border(draw, line, w, h, font)
+            offset += fheight + 10
 
     if text_top:
         larger_text = max(text_top, key=len)
+        offset_top = 0
         font = create_font(img, draw, larger_text, "unicode.impact.ttf")
         _, fheight = draw.textsize(text_top[0], font)
         for line in text_top:
@@ -92,8 +93,9 @@ async def create_meme(imgpath, outpath, text, text_top=None):
     img = Image.open(imgpath)
     font = ImageFont.truetype("unicode.impact.ttf", 32)
     draw = ImageDraw.Draw(img)
-    text = text.upper()
-    text = textwrap.wrap(text, 30)
+    if text:
+        text = text.upper()
+        text = textwrap.wrap(text, 30)
     if text_top:
         text_top = text_top.upper()
         text_top = textwrap.wrap(text_top, 30)
@@ -133,10 +135,5 @@ async def create_meme_tempfile(imgpath, text, text_top=None):
 
 
 if __name__ == "__main__":
-    try:
-        text = sys.argv[4]
-        text_top = sys.argv[3]
-    except IndexError:
-        text = sys.argv[3]
-        text_top = None
-    asyncio.run(create_meme(sys.argv[1], sys.argv[2], text, text_top))
+    top, bottom = text_split(sys.argv[3])
+    asyncio.run(create_meme(sys.argv[1], sys.argv[2], bottom, top))
