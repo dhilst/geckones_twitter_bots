@@ -108,20 +108,20 @@ def text_split(text):
     >>> text_split('foo // bar')
     ('foo', 'bar')
     >>> text_split('foo')
-    ('foo', None)
+    (None, 'foo')
     """
     try:
-        bottom, top = map(str.strip, text.split("//", 1))
+        top, bottom = map(str.strip, text.split("//", 1))
     except ValueError:
         bottom = text.strip()
         top = None
-    return bottom, top
+    return top, bottom
 
 
 async def create_meme_tempfile(imgpath, text, text_top=None):
     ext = utils.get_extension(imgpath)
     temp = tempfile.NamedTemporaryFile(suffix=f".{ext}", delete=False)
-    await create_meme(imgpath, temp.name, text)
+    await create_meme(imgpath, temp.name, text, text_top)
     return temp.name
 
 
