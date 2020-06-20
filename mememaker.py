@@ -109,13 +109,20 @@ def text_split(text):
     ('foo', 'bar')
     >>> text_split('foo')
     (None, 'foo')
+
+    >>> text_split('// only top')
+    ('only top', None)
     """
-    try:
-        top, bottom = map(str.strip, text.split("//", 1))
-    except ValueError:
-        bottom = text.strip()
-        top = None
-    return top, bottom
+    split = tuple(map(str.strip, text.split("//", 1)))
+    if len(split) == 1:
+        return (None, split[0])
+    elif split[0] == '':
+        return (split[1], None)
+    else:
+        return split
+
+
+
 
 
 async def create_meme_tempfile(imgpath, text, text_top=None):
