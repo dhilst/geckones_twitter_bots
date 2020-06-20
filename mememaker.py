@@ -27,12 +27,15 @@ def img_center_width(img, draw, text, font):
     w, _ = draw.textsize(text, font=font)
     return (W - w) / 2
 
-
 def img_margin_bottom(img, draw, text, font, margin):
     _, H = img.size
     _, h = draw.textsize(text, font=font)
     return ((H - h) / 16 * 15) - margin
 
+def img_margin_top(img, draw, text, font, margin):
+    _, H = img.size
+    _, h = draw.textsize(text, font=font)
+    return ((H - h) / 16 * 1) + margin
 
 def bin_search(n, f, l=0, r=1000):
     old_i = 0
@@ -61,9 +64,11 @@ def create_font(img, draw, text, fontpath):
     return ImageFont.truetype(fontpath, fsize)
 
 
-def draw_text(img, draw, text: List[str], font):
+def draw_text(img, draw, text: List[str], font, text_top: List[str] = None):
     offset = 0
-    font = create_font(img, draw, text[0], "unicode.impact.ttf")
+    offset_top = 0
+    larger_text = max(text, key=len)
+    font = create_font(img, draw, larger_text, "unicode.impact.ttf")
     _, fheight = draw.textsize(text[0], font)
     for line in reversed(text):
         h = img_margin_bottom(img, draw, line, font, offset)
@@ -71,20 +76,49 @@ def draw_text(img, draw, text: List[str], font):
         draw_text_border(draw, line, w, h, font)
         offset += fheight + 10
 
+    if text_top:
+        larger_text = max(text_top, key=len)
+        font = create_font(img, draw, larger_text, "unicode.impact.ttf")
+        _, fheight = draw.textsize(text_top[0], font)
+        for line in text_top:
+            h = img_margin_top(img, draw, line, font, offset_top)
+            w = img_center_width(img, draw, line, font)
+            draw_text_border(draw, line, w, h, font)
+            offset_top += fheight + 10
 
-async def create_meme(imgpath, outpath, text):
+
+
+async def create_meme(imgpath, outpath, text, text_top=None):
     img = Image.open(imgpath)
     font = ImageFont.truetype("unicode.impact.ttf", 32)
     draw = ImageDraw.Draw(img)
     text = text.upper()
     text = textwrap.wrap(text, 30)
+    if text_top:
+        text_top = text_top.upper()
+        text_top = textwrap.wrap(text_top, 30)
 
-    draw_text(img, draw, text, font)
+    draw_text(img, draw, text, font, text_top)
 
     img.save(outpath)
 
 
-async def create_meme_tempfile(imgpath, text):
+def text_split(text):
+    """
+    >>> text_split('foo // bar')
+    ('foo', 'bar')
+    >>> text_split('foo')
+    ('foo', None)
+    """
+    try:
+        bottom, top = map(str.strip, text.split("//", 1))
+    except ValueError:
+        bottom = text.strip()
+        top = None
+    return bottom, top
+
+
+async def create_meme_tempfile(imgpath, text, text_top=None):
     ext = utils.get_extension(imgpath)
     temp = tempfile.NamedTemporaryFile(suffix=f".{ext}", delete=False)
     await create_meme(imgpath, temp.name, text)
@@ -92,4 +126,10 @@ async def create_meme_tempfile(imgpath, text):
 
 
 if __name__ == "__main__":
-    asyncio.run(create_meme(sys.argv[1], sys.argv[2], " ".join(sys.argv[3:])))
+    try:
+        text = sys.argv[4]
+        text_top = sys.argv[3]
+    except IndexError:
+        text = sys.argv[3]
+        text_top = None
+    asyncio.run(create_meme(sys.argv[1], sys.argv[2], text, text_top))

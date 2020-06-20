@@ -58,6 +58,7 @@ async def main():
                 text = t.full_text
                 text = re.sub(r"@[^ ]+", "", text).strip()
                 text = re.sub(r"#[^ ]+", "", text).strip()
+                text = re.sub("https//[^ ]+", "", text).strip()
                 ats = re.findall(r"(@[^ ]+)", t.full_text)
                 ats = {at for at in ats if at != f"@{me.screen_name}"}
                 ats = ats.union({f"@{t.user.screen_name}"})
@@ -69,7 +70,8 @@ async def main():
                     url = replied.entities["media"][0].get("media_url")
                     if url:
                         async with utils.download_image(url) as path:
-                            output_path = await mememaker.create_meme_tempfile(path, text)
+                            bottom, top = mememaker.text_split(text)
+                            output_path = await mememaker.create_meme_tempfile(path, bottom, top)
                             if 'DRYRUN' not in os.environ:
                                 status = await twitter.update_with_media(
                                     output_path, status=ats, in_reply_to_status_id=t.id
