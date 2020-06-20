@@ -72,6 +72,9 @@ async def main():
                         async with utils.download_image(url) as path:
                             print(text)
                             top, bottom = mememaker.text_split(text)
+                            # skip if there is no text to render
+                            if not top and not bottom:
+                                continue
                             utils.log.debug("top=%s bottom=%s", top, bottom)
                             output_path = await mememaker.create_meme_tempfile(path, bottom, top)
                             utils.log.debug("path=%s", output_path)

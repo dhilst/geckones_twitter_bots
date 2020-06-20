@@ -114,12 +114,15 @@ def text_split(text):
 
     >>> text_split('only top //')
     ('only top', None)
+
+    >>> text_split('//')
+    (None, None)
     """
     split = tuple(map(str.strip, text.split("//", 1)))
     if len(split) == 1:
         return (None, split[0])
     elif split[1] == '':
-        return (split[0], None)
+        return (split[0] if split[0] else None, None)
     else:
         return split
 
