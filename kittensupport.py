@@ -78,7 +78,7 @@ async def main() -> None:
                 if not new_image_path:
                     continue
 
-            if not "DRYRUNx" in os.environ:
+            if not "DRYRUN" in os.environ:
                 status = await api.update_with_media(new_image_path)
                 utils.log.info("Posted %s", await utils.get_tweet_url(api, status))
             else:
