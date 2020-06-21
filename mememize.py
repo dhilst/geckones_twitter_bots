@@ -2,6 +2,7 @@ import re
 import os
 import asyncio
 import aiofiles.os
+import html
 from datetime import datetime, timedelta
 
 import utils
@@ -54,11 +55,12 @@ async def main():
             if await utils.reply_to_us(twitter, t, me):
                 continue
 
-            if t.in_reply_to_status_id:
+            if getattr(t, 'in_reply_to_status_id', None) and getattr(t, 'full_text', None):
                 text = t.full_text
                 text = re.sub(r"@[^ ]+", "", text).strip()
                 text = re.sub(r"#[^ ]+", "", text).strip()
                 text = re.sub("https//[^ ]+", "", text).strip()
+                text = html.unescape(text)
                 ats = re.findall(r"(@[^ ]+)", t.full_text)
                 ats = {at for at in ats if at != f"@{me.screen_name}"}
                 ats = ats.union({f"@{t.user.screen_name}"})
