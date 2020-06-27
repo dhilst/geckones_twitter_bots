@@ -1,3 +1,4 @@
+from typing import *
 import asyncio
 import contextlib
 import functools
@@ -8,13 +9,13 @@ import tempfile
 from datetime import datetime, timedelta
 
 import aiohttp
-import aiofiles
-import aiofiles.os
-import tweepy
+import aiofiles  # type: ignore
+import aiofiles.os  # type: ignore
+import tweepy  # type: ignore
 from pytz import timezone
 
 import atweepy
-from aredis import StrictRedis
+from aredis import StrictRedis  # type: ignore
 
 
 tz_America_Sao_Paulo = timezone("America/Sao_Paulo")
@@ -40,7 +41,7 @@ class _Logger:
     log.info("foo")
     """
 
-    _loggers = {}
+    _loggers: Dict[str, logging.Logger] = {}
 
     @classmethod
     def create_logger(cls, name):
@@ -85,11 +86,41 @@ async def create_twitter(key, secret, access_token, access_token_secret):
 async def get_tweet_url(twitter, tweet):
     return f"https://twitter.com/{tweet.user.screen_name}/status/{tweet.id}"
 
+
+class get:
+    """
+    This will emulate .get method from dicts for arrays too
+
+    You can use like this
+    >>> [1] >> get(2, 'Not found')
+    'Not found'
+    >>> [1] >> get(2)
+    >>> [1] >> get(0)
+    1
+    """
+
+    def __init__(self, index, default=None):
+        self.index = index
+        self.default = default
+
+    def __rrshift__(self, other):
+        try:
+            return other[self.index]
+        except (LookupError, TypeError):
+            pass
+        try:
+            return getattr(other, self.index)
+        except (AttributeError, TypeError):
+            pass
+        return self.default
+
+
 def get_extension(string):
     try:
         return string.rsplit(".", 1)[1]
     except IndexError:
         pass
+
 
 async def reply_to_us(twitter, tweet, me):
     while True:
