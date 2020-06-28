@@ -88,9 +88,13 @@ async def main():
                 text = t >> get("full_text")
                 if text:
                     utils.log.debug("Has text")
-                    text = re.sub(r"@[^ ]+", "", text).strip()
-                    text = re.sub(r"#[^ ]+", "", text).strip()
-                    text = re.sub("https://[^ ]+", "", text).strip()
+                    text = text.replace("\n", " ")
+                    text = re.sub(r"[\t\r]+", " ", text)
+                    text = re.sub(r"\s+", " ", text)
+                    text = re.sub(r"@[^ ]+", "", text)
+                    text = re.sub(r"#[^ ]+", "", text)
+                    text = re.sub("https://[^ ]+", "", text)
+                    text = text.strip()
                     text = html.unescape(text)
                     ats = re.findall(r"(@[^ ]+)", t.full_text)
                     ats = {at for at in ats if at != f"@{me.screen_name}"}
