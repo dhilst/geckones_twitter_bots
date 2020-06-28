@@ -102,7 +102,7 @@ async def main():
                     elif t.in_reply_to_status_id:
                         utils.log.debug("Is a reply")
                         replied = await twitter.get_status(
-                            t.in_reply_to_status_id, include_entities=True
+                            t.in_reply_to_status_id, include_entities=True, tweet_mode="extended"
                         )
                         if replied.user.id == me.id:
                             utils.log.debug(
