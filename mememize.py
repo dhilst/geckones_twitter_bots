@@ -85,6 +85,10 @@ async def main():
                 if await already_replied(twitter, t, me):
                     continue
 
+                # Dont reply our selves
+                if t.user.id == me.id:
+                    continue
+
                 text = t >> get("full_text")
                 if text:
                     utils.log.debug("Has text")
