@@ -28,7 +28,6 @@ async def create_api():
 
 async def mememize_url(twitter, t: tweepy.Status, url, text, ats):
     async with utils.download_image(url) as path:
-        print(text)
         top, bottom = mememaker.text_split(text)
         # skip if there is no text to render
         if not top and not bottom:
@@ -100,8 +99,11 @@ async def main():
                     text = re.sub("https://[^ ]+", "", text)
                     text = text.strip()
                     text = html.unescape(text)
-                    ats = re.findall(r"(@[^ ]+)", t.full_text)
-                    ats = {at for at in ats if at != f"@{me.screen_name}"}
+                    ats = {
+                        f"@{u['screen_name']}"
+                        for u in t.entities["user_mentions"]
+                        if u["screen_name"] != me.screen_name
+                    }
                     ats = ats.union({f"@{t.user.screen_name}"})
                     ats = " ".join(ats)
                     url = t.entities >> get("media") >> get(0) >> get("media_url")
@@ -110,7 +112,9 @@ async def main():
                     elif t.in_reply_to_status_id:
                         utils.log.debug("Is a reply")
                         replied = await twitter.get_status(
-                            t.in_reply_to_status_id, include_entities=True, tweet_mode="extended"
+                            t.in_reply_to_status_id,
+                            include_entities=True,
+                            tweet_mode="extended",
                         )
                         if replied.user.id == me.id:
                             utils.log.debug(
