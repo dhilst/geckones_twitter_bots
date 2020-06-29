@@ -39,12 +39,10 @@ async def mememize_url(twitter, t: tweepy.Status, url, text, ats):
             status = await twitter.update_with_media(
                 output_path, status=ats, in_reply_to_status_id=t.id
             )
-            utils.log.info("%s posted", await utils.get_tweet_url(twitter, status))
+            utils.log.info("%s posted", utils.get_tweet_url(twitter, status))
             await aiofiles.os.remove(output_path)
         else:
-            utils.log.debug(
-                "DRYRUN, skipping %s", await utils.get_tweet_url(twitter, t)
-            )
+            utils.log.debug("DRYRUN, skipping %s", utils.get_tweet_url(twitter, t))
 
 
 async def already_replied(twitter, t: tweepy.Status, me):
@@ -70,6 +68,7 @@ async def main():
             for t in await twitter.mentions_timeline(
                 last, tweet_mode="extended", include_entities=True
             ):
+                utils.log.info("Handling %s", utils.get_tweet_url(twitter, t))
                 if last is None or t.id > int(last):
                     utils.log.debug(
                         "Found, saving tweet id: last=%s t.id=%s", last, t.id
@@ -93,7 +92,7 @@ async def main():
                 # Skip auto mentions. When a user reply one of our posts
                 # Twiter will insert our @ on the full_text, but it will
                 # not be visible in display_text_range
-                if f"@{me.user_name}" not in text:
+                if f"@{me.screen_name}" not in text:
                     utils.log.debug("Not an explicity mention, ignoring")
                     continue
 
@@ -142,7 +141,7 @@ async def main():
         except tweepy.TweepError as e:
             utils.log.error("TweepError %s", e)
         except Exception as e:
-            utils.log.error("Uncaught Exception %s", e)
+            utils.log.exception("Uncaught Exception")
         finally:
             await asyncio.sleep(20)
 

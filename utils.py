@@ -83,7 +83,7 @@ async def create_twitter(key, secret, access_token, access_token_secret):
     return api
 
 
-async def get_tweet_url(twitter, tweet):
+def get_tweet_url(twitter, tweet):
     return f"https://twitter.com/{tweet.user.screen_name}/status/{tweet.id}"
 
 
