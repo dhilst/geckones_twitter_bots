@@ -63,7 +63,6 @@ async def main():
     me = await twitter.me()
     key = f"twitter_{me.id}_last"
     while True:
-        utils.log.info("Looping")
         try:
             last = await redis.get(key)
             if "MEMEMIZE_TRACE_REDIS" in os.environ:
@@ -88,7 +87,16 @@ async def main():
                 if t.user.id == me.id:
                     continue
 
-                text = t >> get("full_text")
+                a, b = t.display_text_range
+                text = t.full_text[a:b]
+
+                # Skip auto mentions. When a user reply one of our posts
+                # Twiter will insert our @ on the full_text, but it will
+                # not be visible in display_text_range
+                if f"@{me.user_name}" not in text:
+                    utils.log.debug("Not an explicity mention, ignoring")
+                    continue
+
                 if text:
                     utils.log.debug("Has text")
                     text = text.replace("\n", " ")
@@ -136,7 +144,6 @@ async def main():
         except Exception as e:
             utils.log.error("Uncaught Exception %s", e)
         finally:
-            utils.log.info("Sleeping")
             await asyncio.sleep(20)
 
 
