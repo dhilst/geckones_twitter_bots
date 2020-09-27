@@ -106,13 +106,7 @@ async def main():
                     text = re.sub("https://[^ ]+", "", text)
                     text = text.strip()
                     text = html.unescape(text)
-                    ats = {
-                        f"@{u['screen_name']}"
-                        for u in t.entities["user_mentions"]
-                        if u["screen_name"] != me.screen_name
-                    }
-                    ats = ats.union({f"@{t.user.screen_name}"})
-                    ats = " ".join(ats)
+                    ats = f"@{t.user.screen_name}"
                     url = t.entities >> get("media") >> get(0) >> get("media_url")
                     if url:
                         utils.log.debug("Has an image")
