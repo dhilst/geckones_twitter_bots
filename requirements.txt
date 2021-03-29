@@ -27,7 +27,7 @@ praw==7.0.0
 prawcore==1.4.0
 prompt-toolkit==3.0.5
 ptyprocess==0.6.0
-Pygments==2.6.1
+Pygments==2.7.4
 pyparsing==2.4.7
 PySocks==1.7.1
 python-dateutil==2.8.1
