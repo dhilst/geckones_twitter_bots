@@ -1,4 +1,3 @@
-import os
 from typing import *
 import sys
 import asyncio
@@ -28,18 +27,15 @@ def img_center_width(img, draw, text, font):
     w, _ = draw.textsize(text, font=font)
     return (W - w) / 2
 
-
 def img_margin_bottom(img, draw, text, font, margin):
     _, H = img.size
     _, h = draw.textsize(text, font=font)
     return ((H - h) / 16 * 15) - margin
 
-
 def img_margin_top(img, draw, text, font, margin):
     _, H = img.size
     _, h = draw.textsize(text, font=font)
     return ((H - h) / 16 * 1) + margin
-
 
 def bin_search(n, f, l=0, r=1000):
     old_i = 0
@@ -56,19 +52,15 @@ def bin_search(n, f, l=0, r=1000):
         old_i = i
 
 
-# https://math.stackexchange.com/questions/3724365/find-font-size-that-gives-me
-# prior this I was using a binary search
-def smart_font_size(x):
-    return 5 * x + 60.0
-
-
 def create_font(img, draw, text, fontpath):
     left = 0
     right = 100
     W, H = img.size
     ideal_size = W // 16 * 14
+
     max_size = H // 8
-    fsize = min(smart_font_size(ideal_size), max_size)
+    make_font = lambda s: draw.textsize(text, ImageFont.truetype(fontpath, s))[0]
+    fsize = min(bin_search(ideal_size, make_font), max_size)
     return ImageFont.truetype(fontpath, fsize)
 
 
@@ -94,6 +86,7 @@ def draw_text(img, draw, text: List[str], font, text_top: List[str] = None):
             w = img_center_width(img, draw, line, font)
             draw_text_border(draw, line, w, h, font)
             offset_top += fheight + 10
+
 
 
 async def create_meme(imgpath, outpath, text, text_top=None):
@@ -128,10 +121,13 @@ def text_split(text):
     split = tuple(map(str.strip, text.split("//", 1)))
     if len(split) == 1:
         return (None, split[0])
-    elif split[1] == "":
+    elif split[1] == '':
         return (split[0] if split[0] else None, None)
     else:
         return split
+
+
+
 
 
 async def create_meme_tempfile(imgpath, text, text_top=None):
